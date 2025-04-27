@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if form and not edit_mode %}
+        Add Expense - Fashion Store Management
+    {% elif form and edit_mode %}
+        Edit Expense - Fashion Store Management
+    {% else %}
+        Expenses - Fashion Store Management
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+{% if form %}
+    <!-- Expense Form (Add/Edit) -->
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3>
+                        {% if edit_mode %}
+                            <i class="fas fa-edit me-2"></i>Edit Expense
+                        {% else %}
+                            <i class="fas fa-plus-circle me-2"></i>Add New Expense
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('edit_expense', expense_id=expense.id) if edit_mode else url_for('add_expense') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="category" class="form-label">{{ form.category.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                {{ form.category(class="form-control", placeholder="E.g., Rent, Utilities, Salary") }}
+                            </div>
+                            {% if form.category.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.category.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">{{ form.amount.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.amount(class="form-control", placeholder="0.00") }}
+                            </div>
+                            {% if form.amount.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.amount.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="expense_date" class="form-label">{{ form.expense_date.label }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                {{ form.expense_date(class="form-control", type="date") }}
+                            </div>
+                            {% if form.expense_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.expense_date.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">{{ form.description.label }}</label>
+                            {{ form.description(class="form-control", rows=3, placeholder="Enter expense description (optional)") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('expense_list') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- Expense List -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="fas fa-money-bill-wave me-2"></i>Expenses</h2>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="{{ url_for('add_expense') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i>Add New Expense
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Added By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.expense_date.strftime('%b %d, %Y') }}</td>
+                            <td>{{ expense.category }}</td>
+                            <td>${{ expense.amount|round(2) }}</td>
+                            <td>{{ expense.description[:30] + '...' if expense.description and expense.description|length > 30 else expense.description or 'N/A' }}</td>
+                            <td>{{ expense.user.username }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('edit_expense', expense_id=expense.id) }}" class="btn btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteExpenseModal{{ expense.id }}">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                                
+                                <!-- Delete Expense Modal -->
+                                <div class="modal fade" id="deleteExpenseModal{{ expense.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Deletion</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete this expense ({{ expense.category }} - ${{ expense.amount|round(2) }})? This action cannot be undone.
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('delete_expense', expense_id=expense.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No expenses found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

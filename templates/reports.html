@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Fashion Store Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="fas fa-chart-bar me-2"></i>Reports</h2>
+    </div>
+</div>
+
+<!-- Report Filter Form -->
+<div class="card mb-4 shadow">
+    <div class="card-header bg-primary text-white">
+        <h5><i class="fas fa-filter me-2"></i>Filter Reports</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('reports') }}">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="start_date" class="form-label">{{ form.start_date.label }}</label>
+                    {{ form.start_date(class="form-control", type="date") }}
+                    {% if form.start_date.errors %}
+                        <div class="text-danger">
+                            {% for error in form.start_date.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="end_date" class="form-label">{{ form.end_date.label }}</label>
+                    {{ form.end_date(class="form-control", type="date") }}
+                    {% if form.end_date.errors %}
+                        <div class="text-danger">
+                            {% for error in form.end_date.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 d-flex align-items-end mb-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Report Period Display -->
+<div class="alert alert-info">
+    <i class="fas fa-calendar-alt me-2"></i>Showing reports from <strong>{{ start_date.strftime('%b %d, %Y') }}</strong> to <strong>{{ end_date.strftime('%b %d, %Y') }}</strong>
+</div>
+
+<!-- Report Tabs -->
+<ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab" aria-controls="sales" aria-selected="true">
+            <i class="fas fa-shopping-cart me-1"></i>Sales Report
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="expenses-tab" data-bs-toggle="tab" data-bs-target="#expenses" type="button" role="tab" aria-controls="expenses" aria-selected="false">
+            <i class="fas fa-money-bill-wave me-1"></i>Expense Report
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="profit-tab" data-bs-toggle="tab" data-bs-target="#profit" type="button" role="tab" aria-controls="profit" aria-selected="false">
+            <i class="fas fa-chart-line me-1"></i>Profit Report
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="reportsTabContent">
+    <!-- Sales Report Tab -->
+    <div class="tab-pane fade show active" id="sales" role="tabpanel" aria-labelledby="sales-tab">
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-line me-2"></i>Daily Sales</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dailySalesChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Sales by Category</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categorySalesChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-trophy me-2"></i>Top Selling Products</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Size</th>
+                                        <th>Quantity Sold</th>
+                                        <th>Revenue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in sales_data.top_products %}
+                                    <tr>
+                                        <td>{{ product.name }}</td>
+                                        <td>{{ product.size }}</td>
+                                        <td>{{ product.quantity }}</td>
+                                        <td>${{ product.total|round(2) }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No sales data available.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-shopping-cart me-2"></i>Sales Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="text-center mb-4">Total Sales: ${{ sales_data.total_sales_amount|round(2) }}</h3>
+                        <div class="list-group">
+                            {% for sale in sales_data.sales[:5] %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ sale.invoice_number }}</h5>
+                                    <small>${{ sale.total_amount|round(2) }}</small>
+                                </div>
+                                <p class="mb-1">
+                                    {{ sale.sale_date.strftime('%b %d, %Y') }} - 
+                                    {{ sale.customer_name or 'Walk-in Customer' }}
+                                </p>
+                                <small>Sold by: {{ sale.user.username }}</small>
+                            </div>
+                            {% else %}
+                            <div class="list-group-item">
+                                <p class="text-center">No recent sales.</p>
+                            </div>
+                            {% endfor %}
+                            {% if sales_data.sales|length > 5 %}
+                            <div class="list-group-item text-center">
+                                <a href="{{ url_for('sale_list') }}" class="text-decoration-none">View all {{ sales_data.sales|length }} sales</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Expense Report Tab -->
+    <div class="tab-pane fade" id="expenses" role="tabpanel" aria-labelledby="expenses-tab">
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-line me-2"></i>Daily Expenses</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="dailyExpenseChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Expenses by Category</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categoryExpenseChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card shadow">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-list me-2"></i>Expense List</h5>
+                        <h5 class="text-danger mb-0">Total: ${{ expense_data.total_expense_amount|round(2) }}</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Description</th>
+                                        <th>Added By</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for expense in expense_data.expenses %}
+                                    <tr>
+                                        <td>{{ expense.expense_date.strftime('%b %d, %Y') }}</td>
+                                        <td>{{ expense.category }}</td>
+                                        <td>{{ expense.description or 'N/A' }}</td>
+                                        <td>{{ expense.user.username }}</td>
+                                        <td class="text-end">${{ expense.amount|round(2) }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No expenses recorded for this period.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                {% if expense_data.expenses %}
+                                <tfoot class="table-dark">
+                                    <tr>
+                                        <td colspan="4" class="text-end"><strong>Total Expenses:</strong></td>
+                                        <td class="text-end">${{ expense_data.total_expense_amount|round(2) }}</td>
+                                    </tr>
+                                </tfoot>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profit Report Tab -->
+    <div class="tab-pane fade" id="profit" role="tabpanel" aria-labelledby="profit-tab">
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total Sales</h5>
+                        <h3 class="card-text">${{ profit_data.total_sales|round(2) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Cost of Goods</h5>
+                        <h3 class="card-text">${{ profit_data.cogs|round(2) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total Expenses</h5>
+                        <h3 class="card-text">${{ profit_data.total_expenses|round(2) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card {% if profit_data.net_profit >= 0 %}text-white bg-success{% else %}text-white bg-danger{% endif %}">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Net Profit</h5>
+                        <h3 class="card-text">${{ profit_data.net_profit|round(2) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-line me-2"></i>Daily Profit Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="profitChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5><i class="fas fa-calculator me-2"></i>Profit Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td>Total Sales Revenue:</td>
+                                    <td class="text-end">${{ profit_data.total_sales|round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Cost of Goods Sold:</td>
+                                    <td class="text-end">- ${{ profit_data.cogs|round(2) }}</td>
+                                </tr>
+                                <tr class="table-success">
+                                    <td><strong>Gross Profit:</strong></td>
+                                    <td class="text-end"><strong>${{ profit_data.gross_profit|round(2) }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Operating Expenses:</td>
+                                    <td class="text-end">- ${{ profit_data.total_expenses|round(2) }}</td>
+                                </tr>
+                                <tr class="{% if profit_data.net_profit >= 0 %}table-success{% else %}table-danger{% endif %}">
+                                    <td><strong>Net Profit:</strong></td>
+                                    <td class="text-end"><strong>${{ profit_data.net_profit|round(2) }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Profit Margin:</td>
+                                    <td class="text-end">
+                                        {% if profit_data.total_sales > 0 %}
+                                            {{ ((profit_data.net_profit / profit_data.total_sales) * 100)|round(2) }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    // Sales Report Charts
+    const dailySalesData = {{ sales_data.daily_sales_data|safe }};
+    const categorySalesData = {{ sales_data.category_data|safe }};
+    createDailyChart('dailySalesChart', dailySalesData, 'Daily Sales', 'line', 'rgba(54, 162, 235, 0.2)', 'rgba(54, 162, 235, 1)');
+    createPieChart('categorySalesChart', categorySalesData, 'Sales by Category');
+    
+    // Expense Report Charts
+    const dailyExpenseData = {{ expense_data.daily_expense_data|safe }};
+    const categoryExpenseData = {{ expense_data.category_data|safe }};
+    createDailyChart('dailyExpenseChart', dailyExpenseData, 'Daily Expenses', 'line', 'rgba(255, 99, 132, 0.2)', 'rgba(255, 99, 132, 1)');
+    createPieChart('categoryExpenseChart', categoryExpenseData, 'Expenses by Category');
+    
+    // Profit Report Chart
+    const profitData = {{ profit_data.daily_profit_data|safe }};
+    createDailyChart('profitChart', profitData, 'Daily Profit', 'bar', 'rgba(75, 192, 192, 0.2)', 'rgba(75, 192, 192, 1)');
+</script>
+{% endblock %}
