@@ -371,11 +371,6 @@ def sale_list():
 @login_required
 def add_sale():
     form = SaleForm()
-    item_form = SaleItemForm()
-    
-    # Initialize session cart if it doesn't exist
-    if 'cart' not in session:
-        session['cart'] = []
     
     # Auto-generate invoice number if not provided
     if not form.invoice_number.data:
@@ -383,15 +378,50 @@ def add_sale():
     
     # Handle form submission
     if form.validate_on_submit():
-        if not session['cart']:
-            flash('Your cart is empty. Please add items before completing the sale.', 'danger')
+        total_amount = 0
+        sale_items = []
+        
+        # Process selected products
+        for key, value in request.form.items():
+            if key.startswith('quantity_') and int(value) > 0:
+                product_id = int(key.split('_')[1])
+                quantity = int(value)
+                
+                # Get product details
+                product = Product.query.get(product_id)
+                if not product:
+                    continue
+                
+                # Validate quantity
+                if quantity > product.quantity:
+                    flash(f'Cannot add {quantity} of {product.name}. Only {product.quantity} available.', 'danger')
+                    return redirect(url_for('add_sale'))
+                
+                # Calculate total price
+                unit_price = product.selling_price
+                item_total = unit_price * quantity
+                total_amount += item_total
+                
+                # Add to sale items list
+                sale_items.append({
+                    'product_id': product_id,
+                    'quantity': quantity,
+                    'unit_price': unit_price,
+                    'total_price': item_total,
+                    'product': product
+                })
+        
+        # Verify items were selected
+        if not sale_items:
+            flash('Please select at least one product for the sale.', 'danger')
             return redirect(url_for('add_sale'))
         
         # Create new sale
         sale = Sale(
             invoice_number=form.invoice_number.data,
             customer_name=form.customer_name.data,
-            total_amount=sum(item['total_price'] for item in session['cart']),
+            customer_mobile=form.customer_mobile.data,
+            total_amount=total_amount,
             created_by=current_user.id,
             sale_date=form.sale_date.data
         )
@@ -399,7 +429,7 @@ def add_sale():
         db.session.flush()  # Get sale ID without committing
         
         # Add sale items and reduce inventory
-        for item in session['cart']:
+        for item in sale_items:
             sale_item = SaleItem(
                 sale_id=sale.id,
                 product_id=item['product_id'],
@@ -410,101 +440,25 @@ def add_sale():
             db.session.add(sale_item)
             
             # Reduce product inventory
-            product = Product.query.get(item['product_id'])
-            if product:
-                product.quantity -= item['quantity']
+            product = item['product']
+            product.quantity -= item['quantity']
         
         db.session.commit()
         flash('Sale has been recorded successfully!', 'success')
-        # Clear the cart in session
-        session['cart'] = []
         return redirect(url_for('sale_list'))
     
-    # Get all products for the dropdown
+    # Get all products for the form
     products = Product.query.filter(Product.quantity > 0).all()
     
     return render_template(
         'sales.html', 
-        form=form, 
-        item_form=item_form,
+        form=form,
         products=products, 
-        cart=session['cart'],
         title='New Sale'
     )
 
 
-@app.route('/sales/cart/add', methods=['POST'])
-@login_required
-def add_to_cart():
-    # Get product details
-    product_id = request.form.get('product_id', type=int)
-    quantity = request.form.get('quantity', type=int)
-    
-    if not product_id or not quantity or quantity <= 0:
-        flash('Invalid product or quantity', 'danger')
-        return redirect(url_for('add_sale'))
-    
-    product = Product.query.get_or_404(product_id)
-    
-    # Check if quantity is available
-    if quantity > product.quantity:
-        flash(f'Only {product.quantity} items available for {product.name}', 'danger')
-        return redirect(url_for('add_sale'))
-    
-    # Initialize cart in session if it doesn't exist
-    if 'cart' not in session:
-        session['cart'] = []
-    
-    # Check if product already in cart
-    for item in session['cart']:
-        if item['product_id'] == product_id:
-            # Update quantity if already in cart
-            new_quantity = item['quantity'] + quantity
-            if new_quantity > product.quantity:
-                flash(f'Cannot add more. Total would exceed available stock.', 'danger')
-                return redirect(url_for('add_sale'))
-            item['quantity'] = new_quantity
-            item['total_price'] = round(new_quantity * item['unit_price'], 2)
-            session.modified = True
-            break
-    else:
-        # Add new item to cart
-        session['cart'].append({
-            'product_id': product_id,
-            'name': product.name,
-            'size': product.size,
-            'quantity': quantity,
-            'unit_price': float(product.selling_price),
-            'total_price': round(quantity * float(product.selling_price), 2)
-        })
-        session.modified = True
-    
-    flash('Product added to cart', 'success')
-    return redirect(url_for('add_sale'))
-
-
-@app.route('/sales/cart/remove/<int:product_id>', methods=['POST'])
-@login_required
-def remove_from_cart(product_id):
-    if 'cart' not in session:
-        session['cart'] = []
-        return redirect(url_for('add_sale'))
-    
-    # Filter out the item with the specified product_id
-    session['cart'] = [item for item in session['cart'] if item['product_id'] != product_id]
-    session.modified = True
-    
-    flash('Item removed from cart', 'success')
-    return redirect(url_for('add_sale'))
-
-
-@app.route('/sales/cart/clear', methods=['POST'])
-@login_required
-def clear_cart():
-    session['cart'] = []
-    session.modified = True
-    flash('Cart has been cleared', 'info')
-    return redirect(url_for('add_sale'))
+# Cart functionality removed as per client request
 
 
 @app.route('/sales/view/<int:sale_id>')
