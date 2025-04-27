@@ -426,18 +426,81 @@ body::before {
 
 /* Dashboard summary cards */
 .summary-card {
-    border-radius: 15px;
-    padding: 1.75rem;
+    border-radius: 20px;
+    padding: 2rem;
     height: 100%;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
     color: #2c3e50;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     border: none;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    border-left: 5px solid #48a98a;
+}
+
+.summary-card.low-stock {
+    border-left-color: #ffc107;
+}
+
+.summary-card.out-of-stock {
+    border-left-color: #dc3545;
+}
+
+.summary-card h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+}
+
+.summary-card h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #48a98a, #2c6954);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.summary-card.low-stock h2 {
+    background: linear-gradient(45deg, #ffc107, #ff9800);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.summary-card.out-of-stock h2 {
+    background: linear-gradient(45deg, #dc3545, #c62828);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.summary-card p {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.summary-card i {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 3rem;
+    opacity: 0.15;
+    transform: rotate(-15deg);
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.summary-card:hover i {
+    transform: rotate(0deg) scale(1.1);
+    opacity: 0.2;
 }
 
 .summary-card::before {
