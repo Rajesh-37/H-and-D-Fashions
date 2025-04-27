@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import render_template, redirect, url_for, flash, request, jsonify, abort
+from flask import render_template, redirect, url_for, flash, request, jsonify, abort, session
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import func, extract, desc
 from werkzeug.security import generate_password_hash
@@ -373,10 +373,9 @@ def add_sale():
     form = SaleForm()
     item_form = SaleItemForm()
     
-    if 'cart' not in request.cookies:
-        cart = []
-    else:
-        cart = json.loads(request.cookies.get('cart'))
+    # Initialize session cart if it doesn't exist
+    if 'cart' not in session:
+        session['cart'] = []
     
     # Auto-generate invoice number if not provided
     if not form.invoice_number.data:
@@ -384,7 +383,7 @@ def add_sale():
     
     # Handle form submission
     if form.validate_on_submit():
-        if not cart:
+        if not session['cart']:
             flash('Your cart is empty. Please add items before completing the sale.', 'danger')
             return redirect(url_for('add_sale'))
         
@@ -392,7 +391,7 @@ def add_sale():
         sale = Sale(
             invoice_number=form.invoice_number.data,
             customer_name=form.customer_name.data,
-            total_amount=sum(item['total_price'] for item in cart),
+            total_amount=sum(item['total_price'] for item in session['cart']),
             created_by=current_user.id,
             sale_date=form.sale_date.data
         )
@@ -400,7 +399,7 @@ def add_sale():
         db.session.flush()  # Get sale ID without committing
         
         # Add sale items and reduce inventory
-        for item in cart:
+        for item in session['cart']:
             sale_item = SaleItem(
                 sale_id=sale.id,
                 product_id=item['product_id'],
@@ -417,9 +416,9 @@ def add_sale():
         
         db.session.commit()
         flash('Sale has been recorded successfully!', 'success')
-        response = redirect(url_for('sale_list'))
-        response.set_cookie('cart', json.dumps([]))
-        return response
+        # Clear the cart in session
+        session['cart'] = []
+        return redirect(url_for('sale_list'))
     
     # Get all products for the dropdown
     products = Product.query.filter(Product.quantity > 0).all()
@@ -429,7 +428,7 @@ def add_sale():
         form=form, 
         item_form=item_form,
         products=products, 
-        cart=cart,
+        cart=session['cart'],
         title='New Sale'
     )
 
@@ -452,14 +451,12 @@ def add_to_cart():
         flash(f'Only {product.quantity} items available for {product.name}', 'danger')
         return redirect(url_for('add_sale'))
     
-    # Get current cart
-    if 'cart' not in request.cookies:
-        cart = []
-    else:
-        cart = json.loads(request.cookies.get('cart'))
+    # Initialize cart in session if it doesn't exist
+    if 'cart' not in session:
+        session['cart'] = []
     
     # Check if product already in cart
-    for item in cart:
+    for item in session['cart']:
         if item['product_id'] == product_id:
             # Update quantity if already in cart
             new_quantity = item['quantity'] + quantity
@@ -468,10 +465,11 @@ def add_to_cart():
                 return redirect(url_for('add_sale'))
             item['quantity'] = new_quantity
             item['total_price'] = round(new_quantity * item['unit_price'], 2)
+            session.modified = True
             break
     else:
         # Add new item to cart
-        cart.append({
+        session['cart'].append({
             'product_id': product_id,
             'name': product.name,
             'size': product.size,
@@ -479,36 +477,34 @@ def add_to_cart():
             'unit_price': float(product.selling_price),
             'total_price': round(quantity * float(product.selling_price), 2)
         })
+        session.modified = True
     
-    # Set cookie and redirect
-    response = redirect(url_for('add_sale'))
-    response.set_cookie('cart', json.dumps(cart))
     flash('Product added to cart', 'success')
-    return response
+    return redirect(url_for('add_sale'))
 
 
 @app.route('/sales/cart/remove/<int:product_id>', methods=['POST'])
 @login_required
 def remove_from_cart(product_id):
-    if 'cart' not in request.cookies:
+    if 'cart' not in session:
+        session['cart'] = []
         return redirect(url_for('add_sale'))
     
-    cart = json.loads(request.cookies.get('cart'))
-    cart = [item for item in cart if item['product_id'] != product_id]
+    # Filter out the item with the specified product_id
+    session['cart'] = [item for item in session['cart'] if item['product_id'] != product_id]
+    session.modified = True
     
-    response = redirect(url_for('add_sale'))
-    response.set_cookie('cart', json.dumps(cart))
     flash('Item removed from cart', 'success')
-    return response
+    return redirect(url_for('add_sale'))
 
 
 @app.route('/sales/cart/clear', methods=['POST'])
 @login_required
 def clear_cart():
-    response = redirect(url_for('add_sale'))
-    response.set_cookie('cart', json.dumps([]))
+    session['cart'] = []
+    session.modified = True
     flash('Cart has been cleared', 'info')
-    return response
+    return redirect(url_for('add_sale'))
 
 
 @app.route('/sales/view/<int:sale_id>')
