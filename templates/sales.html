@@ -34,6 +34,7 @@
                     <p><strong>Invoice Number:</strong> {{ sale.invoice_number }}</p>
                     <p><strong>Date:</strong> {{ sale.sale_date.strftime('%b %d, %Y %I:%M %p') }}</p>
                     <p><strong>Customer:</strong> {{ sale.customer_name or 'N/A' }}</p>
+                    <p><strong>Mobile:</strong> {{ sale.customer_mobile or 'N/A' }}</p>
                     <p><strong>Created By:</strong> {{ sale.user.username }}</p>
                     <p><strong>Total Amount:</strong> ${{ sale.total_amount|round(2) }}</p>
                 </div>
@@ -129,160 +130,84 @@
     </div>
 
     <div class="row">
-        <div class="col-md-4 mb-4">
-            <!-- Add Item to Cart Form -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-plus-circle me-2"></i>Add Product to Cart</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('add_to_cart') }}">
-                        <div class="mb-3">
-                            <label for="product_id" class="form-label">Product</label>
-                            <select name="product_id" id="product_id" class="form-select" required>
-                                <option value="">Select a product</option>
-                                {% for product in products %}
-                                <option value="{{ product.id }}" data-price="{{ product.selling_price }}" data-stock="{{ product.quantity }}">
-                                    {{ product.name }} - {{ product.size }} (Stock: {{ product.quantity }})
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity</label>
-                            <input type="number" name="quantity" id="quantity" class="form-control" min="1" value="1" required>
-                            <div id="stock-warning" class="text-danger mt-1 d-none">
-                                <small>Quantity exceeds available stock!</small>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Unit Price</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" id="unit-price" class="form-control" readonly>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
-                                <i class="fas fa-cart-plus me-1"></i>Add to Cart
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Sale Information Form -->
+        <div class="col-lg-6 mx-auto">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-info-circle me-2"></i>Sale Information</h5>
+                    <h5><i class="fas fa-receipt me-2"></i>New Sale</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('add_sale') }}">
                         {{ form.hidden_tag() }}
                         
-                        <div class="mb-3">
-                            <label for="invoice_number" class="form-label">{{ form.invoice_number.label }}</label>
-                            {{ form.invoice_number(class="form-control", readonly=true) }}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="invoice_number" class="form-label">{{ form.invoice_number.label }}</label>
+                                {{ form.invoice_number(class="form-control", readonly=true) }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="sale_date" class="form-label">{{ form.sale_date.label }}</label>
+                                {{ form.sale_date(class="form-control", type="date") }}
+                            </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="customer_name" class="form-label">{{ form.customer_name.label }}</label>
-                            {{ form.customer_name(class="form-control", placeholder="Enter customer name (optional)") }}
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="customer_name" class="form-label">{{ form.customer_name.label }}</label>
+                                {{ form.customer_name(class="form-control", placeholder="Enter customer name (optional)") }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="customer_mobile" class="form-label">{{ form.customer_mobile.label }}</label>
+                                {{ form.customer_mobile(class="form-control", placeholder="Enter customer mobile (optional)") }}
+                            </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="sale_date" class="form-label">{{ form.sale_date.label }}</label>
-                            {{ form.sale_date(class="form-control", type="date") }}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Products for Sale</label>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Product</th>
+                                            <th width="100">Size</th>
+                                            <th width="120">Unit Price</th>
+                                            <th width="100">Quantity</th>
+                                            <th width="120">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for product in products %}
+                                        <tr>
+                                            <td>{{ product.name }}</td>
+                                            <td>{{ product.size }}</td>
+                                            <td>${{ product.selling_price|round(2) }}</td>
+                                            <td>
+                                                <input type="number" name="quantity_{{ product.id }}" class="form-control form-control-sm product-quantity" 
+                                                       min="0" max="{{ product.quantity }}" value="0" data-product-id="{{ product.id }}" 
+                                                       data-price="{{ product.selling_price }}" data-stock="{{ product.quantity }}">
+                                            </td>
+                                            <td class="product-total">$0.00</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot class="table-dark">
+                                        <tr>
+                                            <td colspan="4" class="text-end"><strong>Total Amount:</strong></td>
+                                            <td id="sale-total">$0.00</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                         
                         <div class="d-grid gap-2">
-                            {{ form.submit(class="btn btn-success", disabled=true if not cart else false) }}
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#clearCartModal" {% if not cart %}disabled{% endif %}>
-                                <i class="fas fa-trash-alt me-1"></i>Clear Cart
+                            <button type="submit" class="btn btn-success" id="complete-sale-btn">
+                                <i class="fas fa-check-circle me-1"></i>Complete Sale
                             </button>
+                            <a href="{{ url_for('sale_list') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
                         </div>
                     </form>
-                    
-                    <!-- Clear Cart Modal -->
-                    <div class="modal fade" id="clearCartModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Confirm Clear Cart</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Are you sure you want to clear all items from the cart?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <form action="{{ url_for('clear_cart') }}" method="POST">
-                                        <button type="submit" class="btn btn-danger">Clear Cart</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-8">
-            <!-- Cart Items -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-shopping-cart me-2"></i>Cart</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table mb-0">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Size</th>
-                                    <th>Unit Price</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if cart %}
-                                    {% for item in cart %}
-                                    <tr>
-                                        <td>{{ item.name }}</td>
-                                        <td>{{ item.size }}</td>
-                                        <td>${{ item.unit_price|round(2) }}</td>
-                                        <td>{{ item.quantity }}</td>
-                                        <td>${{ item.total_price|round(2) }}</td>
-                                        <td>
-                                            <form action="{{ url_for('remove_from_cart', product_id=item.product_id) }}" method="POST">
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="6" class="text-center">Your cart is empty.</td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                            {% if cart %}
-                            <tfoot class="table-dark">
-                                <tr>
-                                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
-                                    <td colspan="2">${{ cart|map(attribute='total_price')|sum|round(2) }}</td>
-                                </tr>
-                            </tfoot>
-                            {% endif %}
-                        </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -309,6 +234,7 @@
                             <th>Invoice #</th>
                             <th>Date</th>
                             <th>Customer</th>
+                            <th>Mobile</th>
                             <th>Amount</th>
                             <th>Sold By</th>
                             <th>Actions</th>
@@ -320,6 +246,7 @@
                             <td>{{ sale.invoice_number }}</td>
                             <td>{{ sale.sale_date.strftime('%b %d, %Y') }}</td>
                             <td>{{ sale.customer_name or 'N/A' }}</td>
+                            <td>{{ sale.customer_mobile or 'N/A' }}</td>
                             <td>${{ sale.total_amount|round(2) }}</td>
                             <td>{{ sale.user.username }}</td>
                             <td>
@@ -358,7 +285,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">No sales found.</td>
+                            <td colspan="7" class="text-center">No sales found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -372,41 +299,68 @@
 {% block scripts %}
 {% if form and not view_mode %}
 <script>
-    // Handle product selection and show appropriate price
-    document.getElementById('product_id').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const unitPrice = selectedOption.getAttribute('data-price');
-        const stockAvailable = selectedOption.getAttribute('data-stock');
+    // Handle product quantity changes and calculate totals
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInputs = document.querySelectorAll('.product-quantity');
         
-        document.getElementById('unit-price').value = unitPrice ? parseFloat(unitPrice).toFixed(2) : '';
+        // Add event listeners to all quantity inputs
+        quantityInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                updateProductTotal(this);
+                updateSaleTotal();
+                validateSaleForm();
+            });
+        });
         
-        // Reset quantity field
-        const quantityField = document.getElementById('quantity');
-        quantityField.value = 1;
-        quantityField.max = stockAvailable;
+        // Initialize the form
+        updateSaleTotal();
+        validateSaleForm();
         
-        updateQuantityValidation();
-    });
-    
-    // Handle quantity validation
-    document.getElementById('quantity').addEventListener('input', updateQuantityValidation);
-    
-    function updateQuantityValidation() {
-        const quantityField = document.getElementById('quantity');
-        const selectedOption = document.getElementById('product_id').options[document.getElementById('product_id').selectedIndex];
-        const stockAvailable = selectedOption.getAttribute('data-stock');
-        const quantity = parseInt(quantityField.value);
-        const stockWarning = document.getElementById('stock-warning');
-        const addToCartBtn = document.getElementById('add-to-cart-btn');
-        
-        if (stockAvailable && quantity > parseInt(stockAvailable)) {
-            stockWarning.classList.remove('d-none');
-            addToCartBtn.disabled = true;
-        } else {
-            stockWarning.classList.add('d-none');
-            addToCartBtn.disabled = false;
+        // Function to update individual product total
+        function updateProductTotal(input) {
+            const quantity = parseInt(input.value) || 0;
+            const price = parseFloat(input.getAttribute('data-price'));
+            const totalCell = input.closest('tr').querySelector('.product-total');
+            const total = quantity * price;
+            
+            // Update the total cell for this product
+            totalCell.textContent = '$' + total.toFixed(2);
+            
+            // Validate quantity
+            const maxStock = parseInt(input.getAttribute('data-stock'));
+            if (quantity > maxStock) {
+                input.classList.add('is-invalid');
+                input.value = maxStock;
+                updateProductTotal(input);
+            } else {
+                input.classList.remove('is-invalid');
+            }
         }
-    }
+        
+        // Function to update overall sale total
+        function updateSaleTotal() {
+            let total = 0;
+            quantityInputs.forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                const price = parseFloat(input.getAttribute('data-price'));
+                total += quantity * price;
+            });
+            
+            document.getElementById('sale-total').textContent = '$' + total.toFixed(2);
+        }
+        
+        // Function to validate the sale form
+        function validateSaleForm() {
+            const completeSaleBtn = document.getElementById('complete-sale-btn');
+            let totalQuantity = 0;
+            
+            quantityInputs.forEach(input => {
+                totalQuantity += parseInt(input.value) || 0;
+            });
+            
+            completeSaleBtn.disabled = totalQuantity === 0;
+        }
+    });
 </script>
 {% endif %}
 {% endblock %}

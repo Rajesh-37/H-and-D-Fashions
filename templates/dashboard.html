@@ -5,40 +5,44 @@
 {% block content %}
 <!-- Summary Cards -->
 <div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-shopping-cart me-2"></i>Monthly Sales</h5>
-                <h2 class="card-text">${{ monthly_sales|round(2) }}</h2>
-            </div>
+    <div class="col-md-3 mb-4">
+        <div class="summary-card">
+            <h5>Monthly Sales</h5>
+            <h2>${{ monthly_sales|round(2) }}</h2>
+            <p>Total revenue this month</p>
+            <i class="fas fa-shopping-cart"></i>
         </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-money-bill-wave me-2"></i>Monthly Expenses</h5>
-                <h2 class="card-text">${{ monthly_expenses|round(2) }}</h2>
-            </div>
+    <div class="col-md-3 mb-4">
+        <div class="summary-card">
+            <h5>Monthly Expenses</h5>
+            <h2>${{ monthly_expenses|round(2) }}</h2>
+            <p>Total expenses this month</p>
+            <i class="fas fa-money-bill-wave"></i>
         </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card {% if monthly_profit > 0 %}text-white bg-success{% else %}text-white bg-danger{% endif %} mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Monthly Profit</h5>
-                <h2 class="card-text">${{ monthly_profit|round(2) }}</h2>
-            </div>
+    <div class="col-md-3 mb-4">
+        <div class="summary-card {% if monthly_profit < 0 %}out-of-stock{% endif %}">
+            <h5>Monthly Profit</h5>
+            <h2>${{ monthly_profit|round(2) }}</h2>
+            <p>Net income this month</p>
+            <i class="fas fa-chart-line"></i>
         </div>
     </div>
     
-    <div class="col-md-3">
-        <div class="card {% if low_stock_count > 0 %}text-white bg-warning{% else %}text-white bg-info{% endif %} mb-3">
-            <div class="card-body">
-                <h5 class="card-title"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Items</h5>
-                <h2 class="card-text">{{ low_stock_count }}</h2>
-                <a href="{{ url_for('low_stock') }}" class="btn btn-sm btn-outline-light mt-2">View Details</a>
+    <div class="col-md-3 mb-4">
+        <div class="summary-card {% if low_stock_count > 0 %}low-stock{% endif %}">
+            <h5>Low Stock Items</h5>
+            <h2>{{ low_stock_count }}</h2>
+            <p>Items needing restock</p>
+            <i class="fas fa-exclamation-triangle"></i>
+            {% if low_stock_count > 0 %}
+            <div class="mt-3">
+                <a href="{{ url_for('low_stock') }}" class="btn btn-sm btn-warning">View Details</a>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
