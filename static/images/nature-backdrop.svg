@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920px" height="1080px" viewBox="0 0 1920 1080" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="skyGradient">
+            <stop stop-color="#c2e9fb" offset="0%"></stop>
+            <stop stop-color="#e4f1f5" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="mountainGradient1">
+            <stop stop-color="#48a98a" offset="0%"></stop>
+            <stop stop-color="#67b99a" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="mountainGradient2">
+            <stop stop-color="#3c8a73" offset="0%"></stop>
+            <stop stop-color="#56a38c" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="mountainGradient3">
+            <stop stop-color="#2c6954" offset="0%"></stop>
+            <stop stop-color="#3e8d75" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="0%" y1="0%" x2="100%" y2="100%" id="cloudGradient">
+            <stop stop-color="#ffffff" offset="0%"></stop>
+            <stop stop-color="#f0f0f0" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    
+    <!-- Sky Background -->
+    <rect width="1920" height="1080" fill="url(#skyGradient)" />
+    
+    <!-- Far Mountains -->
+    <path d="M0,1080 L0,650 C200,550 400,600 600,500 C800,400 1000,450 1200,400 C1400,350 1600,400 1800,450 C1900,475 1920,500 1920,500 L1920,1080 Z" fill="url(#mountainGradient3)" opacity="0.8" />
+    
+    <!-- Mid Mountains -->
+    <path d="M0,1080 L0,700 C100,650 200,670 300,630 C450,570 550,650 650,610 C800,550 900,600 1050,580 C1200,560 1350,620 1500,600 C1650,580 1800,630 1920,600 L1920,1080 Z" fill="url(#mountainGradient2)" opacity="0.9" />
+    
+    <!-- Near Mountains -->
+    <path d="M0,1080 L0,800 C150,750 250,780 350,760 C450,740 550,770 700,740 C850,710 1000,750 1150,730 C1300,710 1450,760 1600,730 C1750,700 1850,740 1920,720 L1920,1080 Z" fill="url(#mountainGradient1)" />
+    
+    <!-- Clouds -->
+    <g opacity="0.7">
+        <!-- Cloud 1 -->
+        <path d="M200,250 C220,230 260,230 280,250 C290,230 320,230 330,250 C350,230 380,230 400,250 C410,230 430,230 450,250 C450,270 410,290 400,270 C390,290 340,290 330,270 C320,290 290,290 280,270 C260,290 220,290 200,270 C200,260 200,260 200,250 Z" fill="url(#cloudGradient)" />
+        
+        <!-- Cloud 2 -->
+        <path d="M600,180 C620,160 650,160 670,180 C680,160 710,160 720,180 C740,160 770,160 790,180 C800,160 830,160 850,180 C850,200 810,220 800,200 C790,220 740,220 730,200 C720,220 690,220 680,200 C660,220 620,220 600,200 C600,190 600,190 600,180 Z" fill="url(#cloudGradient)" />
+        
+        <!-- Cloud 3 -->
+        <path d="M1100,300 C1120,280 1160,280 1180,300 C1190,280 1220,280 1230,300 C1250,280 1280,280 1300,300 C1310,280 1330,280 1350,300 C1350,320 1310,340 1300,320 C1290,340 1240,340 1230,320 C1220,340 1190,340 1180,320 C1160,340 1120,340 1100,320 C1100,310 1100,310 1100,300 Z" fill="url(#cloudGradient)" />
+        
+        <!-- Cloud 4 -->
+        <path d="M1500,220 C1520,200 1550,200 1570,220 C1580,200 1610,200 1620,220 C1640,200 1670,200 1690,220 C1700,200 1730,200 1750,220 C1750,240 1710,260 1700,240 C1690,260 1640,260 1630,240 C1620,260 1590,260 1580,240 C1560,260 1520,260 1500,240 C1500,230 1500,230 1500,220 Z" fill="url(#cloudGradient)" />
+    </g>
+    
+    <!-- Sun -->
+    <circle cx="1600" cy="150" r="80" fill="#ffeb99" opacity="0.8" />
+    <circle cx="1600" cy="150" r="60" fill="#ffd966" opacity="0.9" />
+    
+    <!-- Birds -->
+    <g opacity="0.6">
+        <path d="M500,300 C510,290 520,300 530,290 C540,300 550,290 560,300" stroke="#333" stroke-width="2" fill="none" />
+        <path d="M800,250 C810,240 820,250 830,240 C840,250 850,240 860,250" stroke="#333" stroke-width="2" fill="none" />
+        <path d="M1300,350 C1310,340 1320,350 1330,340 C1340,350 1350,340 1360,350" stroke="#333" stroke-width="2" fill="none" />
+    </g>
+</svg>

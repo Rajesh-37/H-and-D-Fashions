@@ -16,10 +16,10 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('login') }}">
-                <i class="fas fa-tshirt me-2"></i>Fashion Store
+            <a class="navbar-brand" href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('login') }}">
+                <i class="fas fa-leaf me-2"></i>Fashion Store
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -29,50 +29,50 @@
                 {% if current_user.is_authenticated %}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active fw-bold{% endif %}" href="{{ url_for('dashboard') }}">
+                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
                             <i class="fas fa-chart-line me-1"></i>Dashboard
                         </a>
                     </li>
                     
                     {% if current_user.role == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'user_list' %}active fw-bold{% endif %}" href="{{ url_for('user_list') }}">
+                        <a class="nav-link {% if request.endpoint == 'user_list' %}active{% endif %}" href="{{ url_for('user_list') }}">
                             <i class="fas fa-users me-1"></i>Users
                         </a>
                     </li>
                     {% endif %}
                     
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'category_list' %}active fw-bold{% endif %}" href="{{ url_for('category_list') }}">
+                        <a class="nav-link {% if request.endpoint == 'category_list' %}active{% endif %}" href="{{ url_for('category_list') }}">
                             <i class="fas fa-tags me-1"></i>Categories
                         </a>
                     </li>
                     
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'product_list' %}active fw-bold{% endif %}" href="{{ url_for('product_list') }}">
+                        <a class="nav-link {% if request.endpoint == 'product_list' %}active{% endif %}" href="{{ url_for('product_list') }}">
                             <i class="fas fa-box me-1"></i>Products
                         </a>
                     </li>
                     
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'sale_list' %}active fw-bold{% endif %}" href="{{ url_for('sale_list') }}">
+                        <a class="nav-link {% if request.endpoint == 'sale_list' %}active{% endif %}" href="{{ url_for('sale_list') }}">
                             <i class="fas fa-shopping-cart me-1"></i>Sales
                         </a>
                     </li>
                     
                     {% if current_user.role in ['admin', 'manager'] %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'expense_list' %}active fw-bold{% endif %}" href="{{ url_for('expense_list') }}">
+                        <a class="nav-link {% if request.endpoint == 'expense_list' %}active{% endif %}" href="{{ url_for('expense_list') }}">
                             <i class="fas fa-money-bill-wave me-1"></i>Expenses
                         </a>
                     </li>
                     {% endif %}
                     
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['reports', 'low_stock'] %}active fw-bold{% endif %}" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle {% if request.endpoint in ['reports', 'low_stock'] %}active{% endif %}" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-file-alt me-1"></i>Reports
                         </a>
-                        <ul class="dropdown-menu shadow" aria-labelledby="reportsDropdown">
+                        <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
                             <li>
                                 <a class="dropdown-item" href="{{ url_for('reports') }}">
                                     <i class="fas fa-chart-bar me-1"></i>Sales & Profit Reports
@@ -92,7 +92,7 @@
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
                                 <span class="dropdown-item-text text-muted">
                                     <i class="fas fa-id-badge me-1"></i>Role: {{ current_user.role | capitalize }}
