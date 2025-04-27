@@ -54,8 +54,9 @@ class Product(db.Model):
 
 class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    invoice_number = db.Column(db.String(50), unique=True, nullable=False)
+    invoice_number = db.Column(db.String(3), unique=True, nullable=False)
     customer_name = db.Column(db.String(100))
+    customer_mobile = db.Column(db.String(15))
     total_amount = db.Column(db.Float, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     sale_date = db.Column(db.DateTime, default=datetime.now)

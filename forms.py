@@ -64,8 +64,9 @@ class ProductForm(FlaskForm):
 
 
 class SaleForm(FlaskForm):
-    invoice_number = StringField('Invoice Number', validators=[DataRequired()])
+    invoice_number = StringField('Invoice Number', validators=[DataRequired(), Length(max=3)])
     customer_name = StringField('Customer Name', validators=[Optional()])
+    customer_mobile = StringField('Customer Mobile', validators=[Optional(), Length(max=15)])
     sale_date = DateField('Sale Date', validators=[DataRequired()], default=datetime.now)
     submit = SubmitField('Complete Sale')
 
