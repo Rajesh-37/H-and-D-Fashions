@@ -381,15 +381,22 @@ def add_sale():
         total_amount = 0
         sale_items = []
         
-        # Process selected products
-        for key, value in request.form.items():
-            if key.startswith('quantity_') and int(value) > 0:
-                product_id = int(key.split('_')[1])
-                quantity = int(value)
-                
+        # Process selected products from dropdowns
+        row_index = 1
+        product_key = f'product_id_{row_index}'
+        
+        while product_key in request.form:
+            product_id = request.form.get(product_key)
+            quantity_key = f'quantity_{row_index}'
+            quantity = int(request.form.get(quantity_key, 0))
+            
+            if product_id and quantity > 0:
+                product_id = int(product_id)
                 # Get product details
                 product = Product.query.get(product_id)
                 if not product:
+                    row_index += 1
+                    product_key = f'product_id_{row_index}'
                     continue
                 
                 # Validate quantity
@@ -410,6 +417,10 @@ def add_sale():
                     'total_price': item_total,
                     'product': product
                 })
+            
+            # Move to next row
+            row_index += 1
+            product_key = f'product_id_{row_index}'
         
         # Verify items were selected
         if not sale_items:

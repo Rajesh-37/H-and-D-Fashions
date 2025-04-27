@@ -162,40 +162,58 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Select Products for Sale</label>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Product</th>
-                                            <th width="100">Size</th>
-                                            <th width="120">Unit Price</th>
-                                            <th width="100">Quantity</th>
-                                            <th width="120">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for product in products %}
-                                        <tr>
-                                            <td>{{ product.name }}</td>
-                                            <td>{{ product.size }}</td>
-                                            <td>${{ product.selling_price|round(2) }}</td>
-                                            <td>
-                                                <input type="number" name="quantity_{{ product.id }}" class="form-control form-control-sm product-quantity" 
-                                                       min="0" max="{{ product.quantity }}" value="0" data-product-id="{{ product.id }}" 
-                                                       data-price="{{ product.selling_price }}" data-stock="{{ product.quantity }}">
-                                            </td>
-                                            <td class="product-total">$0.00</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                    <tfoot class="table-dark">
-                                        <tr>
-                                            <td colspan="4" class="text-end"><strong>Total Amount:</strong></td>
-                                            <td id="sale-total">$0.00</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <label class="form-label fw-bold">Select Product and Quantity</label>
+                            <div id="product-selections">
+                                <div class="product-row mb-3">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-5">
+                                            <select name="product_id_1" class="form-select product-dropdown">
+                                                <option value="">-- Select a product --</option>
+                                                {% for product in products %}
+                                                <option value="{{ product.id }}" 
+                                                        data-price="{{ product.selling_price }}" 
+                                                        data-stock="{{ product.quantity }}"
+                                                        data-size="{{ product.size }}">
+                                                    {{ product.name }} - {{ product.size }} (Stock: {{ product.quantity }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control product-price" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="number" name="quantity_1" class="form-control product-quantity" 
+                                                   min="0" value="0" disabled>
+                                            <div class="invalid-feedback">
+                                                Exceeds available stock!
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" class="form-control product-subtotal" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-outline-success btn-sm add-row">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-3">
+                                <div class="card bg-light p-3" style="width: 200px">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total:</strong>
+                                        <span id="sale-total">$0.00</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -299,62 +317,133 @@
 {% block scripts %}
 {% if form and not view_mode %}
 <script>
-    // Handle product quantity changes and calculate totals
     document.addEventListener('DOMContentLoaded', function() {
-        const quantityInputs = document.querySelectorAll('.product-quantity');
+        let rowCounter = 1;
+        const productSelections = document.getElementById('product-selections');
         
-        // Add event listeners to all quantity inputs
-        quantityInputs.forEach(input => {
-            input.addEventListener('input', function() {
-                updateProductTotal(this);
+        // Initialize the first row
+        setupProductRow(document.querySelector('.product-row'));
+
+        // Add row button functionality
+        document.querySelector('.add-row').addEventListener('click', addNewRow);
+        
+        function addNewRow() {
+            rowCounter++;
+            
+            // Clone the first row
+            const template = document.querySelector('.product-row').cloneNode(true);
+            
+            // Update IDs and names
+            template.querySelector('.product-dropdown').name = `product_id_${rowCounter}`;
+            template.querySelector('.product-quantity').name = `quantity_${rowCounter}`;
+            
+            // Reset values
+            template.querySelector('.product-dropdown').value = '';
+            template.querySelector('.product-quantity').value = '0';
+            template.querySelector('.product-price').value = '';
+            template.querySelector('.product-subtotal').value = '';
+            template.querySelector('.product-quantity').disabled = true;
+            
+            // Replace add button with remove button for rows after the first
+            const buttonCol = template.querySelector('.col-md-1');
+            buttonCol.innerHTML = `
+                <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+            
+            // Add to the DOM
+            productSelections.appendChild(template);
+            
+            // Setup the new row
+            setupProductRow(template);
+            
+            // Add event listener to remove button
+            template.querySelector('.remove-row').addEventListener('click', function() {
+                template.remove();
                 updateSaleTotal();
                 validateSaleForm();
             });
-        });
-        
-        // Initialize the form
-        updateSaleTotal();
-        validateSaleForm();
-        
-        // Function to update individual product total
-        function updateProductTotal(input) {
-            const quantity = parseInt(input.value) || 0;
-            const price = parseFloat(input.getAttribute('data-price'));
-            const totalCell = input.closest('tr').querySelector('.product-total');
-            const total = quantity * price;
-            
-            // Update the total cell for this product
-            totalCell.textContent = '$' + total.toFixed(2);
-            
-            // Validate quantity
-            const maxStock = parseInt(input.getAttribute('data-stock'));
-            if (quantity > maxStock) {
-                input.classList.add('is-invalid');
-                input.value = maxStock;
-                updateProductTotal(input);
-            } else {
-                input.classList.remove('is-invalid');
-            }
         }
         
-        // Function to update overall sale total
+        function setupProductRow(row) {
+            const dropdown = row.querySelector('.product-dropdown');
+            const quantityInput = row.querySelector('.product-quantity');
+            const priceInput = row.querySelector('.product-price');
+            const subtotalInput = row.querySelector('.product-subtotal');
+            
+            // Handle product selection
+            dropdown.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                
+                if (this.value) {
+                    // Product selected - update price and enable quantity input
+                    const price = parseFloat(selectedOption.dataset.price);
+                    const stock = parseInt(selectedOption.dataset.stock);
+                    
+                    priceInput.value = price.toFixed(2);
+                    quantityInput.disabled = false;
+                    quantityInput.max = stock;
+                    quantityInput.value = 0;
+                    subtotalInput.value = '0.00';
+                } else {
+                    // No product selected - reset fields
+                    priceInput.value = '';
+                    quantityInput.value = '0';
+                    quantityInput.disabled = true;
+                    subtotalInput.value = '';
+                }
+                
+                updateSaleTotal();
+                validateSaleForm();
+            });
+            
+            // Handle quantity changes
+            quantityInput.addEventListener('input', function() {
+                let quantity = parseInt(this.value) || 0;
+                const selectedOption = dropdown.options[dropdown.selectedIndex];
+                const price = parseFloat(selectedOption.dataset.price);
+                const stock = parseInt(selectedOption.dataset.stock);
+                
+                // Validate against stock
+                if (quantity > stock) {
+                    quantity = stock;
+                    this.value = stock;
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+                
+                // Update subtotal
+                const subtotal = quantity * price;
+                subtotalInput.value = subtotal.toFixed(2);
+                
+                updateSaleTotal();
+                validateSaleForm();
+            });
+        }
+        
+        // Calculate the total sale amount
         function updateSaleTotal() {
             let total = 0;
-            quantityInputs.forEach(input => {
-                const quantity = parseInt(input.value) || 0;
-                const price = parseFloat(input.getAttribute('data-price'));
-                total += quantity * price;
+            const allSubtotals = document.querySelectorAll('.product-subtotal');
+            
+            allSubtotals.forEach(input => {
+                if (input.value) {
+                    total += parseFloat(input.value);
+                }
             });
             
             document.getElementById('sale-total').textContent = '$' + total.toFixed(2);
         }
         
-        // Function to validate the sale form
+        // Validate the form before submission
         function validateSaleForm() {
             const completeSaleBtn = document.getElementById('complete-sale-btn');
             let totalQuantity = 0;
+            const allQuantities = document.querySelectorAll('.product-quantity');
             
-            quantityInputs.forEach(input => {
+            allQuantities.forEach(input => {
                 totalQuantity += parseInt(input.value) || 0;
             });
             
