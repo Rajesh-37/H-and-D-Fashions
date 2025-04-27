@@ -207,8 +207,33 @@
                                 </div>
                             </div>
                             
+                            <div class="card mt-3 p-3">
+                                <h6 class="mb-3">Apply Discount</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        {{ form.discount_type(class="form-select") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form.discount_value(class="form-control", placeholder="Enter value") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-primary w-100" id="apply-discount">
+                                            <i class="fas fa-tag me-1"></i>Apply Discount
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="d-flex justify-content-end mt-3">
-                                <div class="card bg-light p-3" style="width: 200px">
+                                <div class="card bg-light p-3" style="width: 300px">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Subtotal:</strong>
+                                        <span id="sale-subtotal">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Discount:</strong>
+                                        <span id="sale-discount">$0.00</span>
+                                    </div>
                                     <div class="d-flex justify-content-between">
                                         <strong>Total:</strong>
                                         <span id="sale-total">$0.00</span>

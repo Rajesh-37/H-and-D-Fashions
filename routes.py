@@ -427,12 +427,23 @@ def add_sale():
             flash('Please select at least one product for the sale.', 'danger')
             return redirect(url_for('add_sale'))
         
+        # Apply discount if any
+        discount_amount = 0
+        if form.discount_type.data != 'none' and form.discount_value.data:
+            if form.discount_type.data == 'percentage':
+                discount_amount = total_amount * (form.discount_value.data / 100)
+            else:
+                discount_amount = form.discount_value.data
+            total_amount = total_amount - discount_amount
+
         # Create new sale
         sale = Sale(
             invoice_number=form.invoice_number.data,
             customer_name=form.customer_name.data,
             customer_mobile=form.customer_mobile.data,
             total_amount=total_amount,
+            discount_amount=discount_amount,
+            discount_type=form.discount_type.data,
             created_by=current_user.id,
             sale_date=form.sale_date.data
         )

@@ -68,6 +68,13 @@ class SaleForm(FlaskForm):
     customer_name = StringField('Customer Name', validators=[Optional()])
     customer_mobile = StringField('Customer Mobile', validators=[Optional(), Length(max=15)])
     sale_date = DateField('Sale Date', validators=[DataRequired()], default=datetime.now)
+    discount_type = SelectField('Discount Type', choices=[
+        ('none', 'No Discount'),
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed Amount'),
+        ('special', 'Special Offer')
+    ], default='none')
+    discount_value = FloatField('Discount Value', validators=[Optional(), NumberRange(min=0)], default=0)
     submit = SubmitField('Complete Sale')
 
 

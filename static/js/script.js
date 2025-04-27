@@ -106,4 +106,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const formattedDate = today.toISOString().substr(0, 10);
         saleDateInput.value = formattedDate;
     }
+
+    // Discount handling
+    const applyDiscountBtn = document.getElementById('apply-discount');
+    if (applyDiscountBtn) {
+        applyDiscountBtn.addEventListener('click', function() {
+            const discountType = document.getElementById('discount_type').value;
+            const discountValue = parseFloat(document.getElementById('discount_value').value) || 0;
+            const subtotal = parseFloat(document.getElementById('sale-subtotal').textContent.replace('$', '')) || 0;
+            
+            let discountAmount = 0;
+            
+            switch(discountType) {
+                case 'percentage':
+                    discountAmount = subtotal * (discountValue / 100);
+                    break;
+                case 'fixed':
+                    discountAmount = discountValue;
+                    break;
+                case 'special':
+                    discountAmount = discountValue;
+                    break;
+            }
+            
+            const total = subtotal - discountAmount;
+            
+            document.getElementById('sale-discount').textContent = '$' + discountAmount.toFixed(2);
+            document.getElementById('sale-total').textContent = '$' + total.toFixed(2);
+        });
+    }
 });
