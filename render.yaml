@@ -2,12 +2,14 @@ services:
   - type: web
     name: hdfashions
     env: python
-    buildCommand: cd /opt/render/project/src && pip install -r requirements.txt
-    startCommand: gunicorn "app:app" --bind 0.0.0.0:$PORT
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
       - key: SESSION_SECRET
         generateValue: true
       - key: DATABASE_URL
-        fromDatabase:
-          name: hdfashions-db
-          property: connectionString 
+        value: sqlite:///instance/hdfashions.db 
