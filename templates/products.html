@@ -173,8 +173,8 @@
                                 {{ product.quantity }}
                                 {% endif %}
                             </td>
-                            <td>${{ product.purchase_price|round(2) }}</td>
-                            <td>${{ product.selling_price|round(2) }}</td>
+                            <td>₹{{ product.purchase_price|round(2) }}</td>
+                            <td>₹{{ product.selling_price|round(2) }}</td>
                             {% if current_user.role in ['admin', 'manager'] %}
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">

@@ -3,22 +3,15 @@ import logging
 from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
-from flask_login import LoginManager, current_user, login_required, login_user, logout_user
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 
+from extensions import db, login_manager
+from models import User, Category, Product, Sale, SaleItem, Expense
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-class Base(DeclarativeBase):
-    pass
-
-
-db = SQLAlchemy(model_class=Base)
 # create the app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key-for-dev")
@@ -34,7 +27,7 @@ if 'PYTHONANYWHERE_DOMAIN' in os.environ:
     )
 else:
     # Local development configuration
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///hdfashions.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///instance/hdfashions.db")
 
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
@@ -42,19 +35,14 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Initialize the app with the extension
+# Initialize extensions with app
 db.init_app(app)
-
-# Initialize Login Manager
-login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
-login_manager.login_message_category = 'danger'
+
+# Import routes after extensions are initialized
+from routes import *
 
 with app.app_context():
-    # Import models to create tables
-    from models import User, Category, Product, Sale, SaleItem, Expense
-
     # Create tables
     db.create_all()
 
@@ -70,9 +58,6 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
         logger.info("Admin user created")
-
-# Import routes after the app is created
-from routes import *
 
 if __name__ == '__main__':
     if 'PYTHONANYWHERE_DOMAIN' in os.environ:

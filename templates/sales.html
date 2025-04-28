@@ -36,7 +36,7 @@
                     <p><strong>Customer:</strong> {{ sale.customer_name or 'N/A' }}</p>
                     <p><strong>Mobile:</strong> {{ sale.customer_mobile or 'N/A' }}</p>
                     <p><strong>Created By:</strong> {{ sale.user.username }}</p>
-                    <p><strong>Total Amount:</strong> ${{ sale.total_amount|round(2) }}</p>
+                    <p><strong>Total Amount:</strong> ₹{{ sale.total_amount|round(2) }}</p>
                 </div>
             </div>
         </div>
@@ -63,16 +63,16 @@
                                 <tr>
                                     <td>{{ item.product.name }}</td>
                                     <td>{{ item.product.size }}</td>
-                                    <td>${{ item.unit_price|round(2) }}</td>
+                                    <td>₹{{ item.unit_price|round(2) }}</td>
                                     <td>{{ item.quantity }}</td>
-                                    <td>${{ item.total_price|round(2) }}</td>
+                                    <td>₹{{ item.total_price|round(2) }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                             <tfoot class="table-dark">
                                 <tr>
                                     <td colspan="4" class="text-end"><strong>Total:</strong></td>
-                                    <td>${{ sale.total_amount|round(2) }}</td>
+                                    <td>₹{{ sale.total_amount|round(2) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -181,7 +181,7 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="input-group">
-                                                <span class="input-group-text">$</span>
+                                                <span class="input-group-text">₹</span>
                                                 <input type="text" class="form-control product-price" readonly>
                                             </div>
                                         </div>
@@ -194,7 +194,7 @@
                                         </div>
                                         <div class="col-md-2">
                                             <div class="input-group">
-                                                <span class="input-group-text">$</span>
+                                                <span class="input-group-text">₹</span>
                                                 <input type="text" class="form-control product-subtotal" readonly>
                                             </div>
                                         </div>
@@ -228,15 +228,15 @@
                                 <div class="card bg-light p-3" style="width: 300px">
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Subtotal:</strong>
-                                        <span id="sale-subtotal">$0.00</span>
+                                        <span id="sale-subtotal">₹0.00</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <strong>Discount:</strong>
-                                        <span id="sale-discount">$0.00</span>
+                                        <span id="sale-discount">₹0.00</span>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <strong>Total:</strong>
-                                        <span id="sale-total">$0.00</span>
+                                        <span id="sale-total">₹0.00</span>
                                     </div>
                                 </div>
                             </div>
@@ -290,7 +290,7 @@
                             <td>{{ sale.sale_date.strftime('%b %d, %Y') }}</td>
                             <td>{{ sale.customer_name or 'N/A' }}</td>
                             <td>{{ sale.customer_mobile or 'N/A' }}</td>
-                            <td>${{ sale.total_amount|round(2) }}</td>
+                            <td>₹{{ sale.total_amount|round(2) }}</td>
                             <td>{{ sale.user.username }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
@@ -459,7 +459,7 @@
                 }
             });
             
-            document.getElementById('sale-total').textContent = '$' + total.toFixed(2);
+            document.getElementById('sale-total').textContent = '₹' + total.toFixed(2);
         }
         
         // Validate the form before submission

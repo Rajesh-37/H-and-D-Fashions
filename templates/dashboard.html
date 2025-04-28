@@ -8,7 +8,7 @@
     <div class="col-md-3 mb-4">
         <div class="summary-card">
             <h5>Monthly Sales</h5>
-            <h2>${{ monthly_sales|round(2) }}</h2>
+            <h2>₹{{ monthly_sales|round(2) }}</h2>
             <p>Total revenue this month</p>
             <i class="fas fa-shopping-cart"></i>
         </div>
@@ -17,7 +17,7 @@
     <div class="col-md-3 mb-4">
         <div class="summary-card">
             <h5>Monthly Expenses</h5>
-            <h2>${{ monthly_expenses|round(2) }}</h2>
+            <h2>₹{{ monthly_expenses|round(2) }}</h2>
             <p>Total expenses this month</p>
             <i class="fas fa-money-bill-wave"></i>
         </div>
@@ -26,7 +26,7 @@
     <div class="col-md-3 mb-4">
         <div class="summary-card {% if monthly_profit < 0 %}out-of-stock{% endif %}">
             <h5>Monthly Profit</h5>
-            <h2>${{ monthly_profit|round(2) }}</h2>
+            <h2>₹{{ monthly_profit|round(2) }}</h2>
             <p>Net income this month</p>
             <i class="fas fa-chart-line"></i>
         </div>
@@ -97,7 +97,7 @@
                                 <td>{{ sale.invoice_number }}</td>
                                 <td>{{ sale.sale_date.strftime('%b %d, %Y') }}</td>
                                 <td>{{ sale.customer_name or 'N/A' }}</td>
-                                <td>${{ sale.total_amount|round(2) }}</td>
+                                <td>₹{{ sale.total_amount|round(2) }}</td>
                             </tr>
                             {% else %}
                             <tr>
@@ -134,7 +134,7 @@
                                 <td>{{ expense.expense_date.strftime('%b %d, %Y') }}</td>
                                 <td>{{ expense.category }}</td>
                                 <td>{{ expense.description[:20] + '...' if expense.description and expense.description|length > 20 else expense.description or 'N/A' }}</td>
-                                <td>${{ expense.amount|round(2) }}</td>
+                                <td>₹{{ expense.amount|round(2) }}</td>
                             </tr>
                             {% else %}
                             <tr>
@@ -185,7 +185,7 @@
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value;
+                            return '₹' + value;
                         }
                     }
                 }
@@ -197,7 +197,7 @@
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return '$' + context.parsed.y.toFixed(2);
+                            return '₹' + context.parsed.y.toFixed(2);
                         }
                     }
                 }
@@ -252,7 +252,7 @@
                             const value = context.parsed || 0;
                             const total = context.dataset.data.reduce((acc, data) => acc + data, 0);
                             const percentage = ((value / total) * 100).toFixed(1);
-                            return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                            return `${label}: ₹${value.toFixed(2)} (${percentage}%)`;
                         }
                     }
                 }
