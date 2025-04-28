@@ -6,7 +6,6 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from extensions import db, login_manager
-from models import User, Category, Product, Sale, SaleItem, Expense
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -39,7 +38,13 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 login_manager.init_app(app)
 
-# Import routes after extensions are initialized
+# Create app context
+app.app_context().push()
+
+# Import models after db is initialized
+from models import User, Category, Product, Sale, SaleItem, Expense
+
+# Import routes after extensions and models are initialized
 from routes import *
 
 with app.app_context():
