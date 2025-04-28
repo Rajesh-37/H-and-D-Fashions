@@ -22,10 +22,20 @@ db = SQLAlchemy(model_class=Base)
 # create the app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "default-secret-key-for-dev")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
-# Configure the PostgreSQL database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+# Configure the database
+if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+    # PythonAnywhere configuration
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://{username}:{password}@{hostname}/{databasename}".format(
+        username=os.environ.get("DB_USERNAME"),
+        password=os.environ.get("DB_PASSWORD"),
+        hostname=os.environ.get("DB_HOSTNAME"),
+        databasename=os.environ.get("DB_NAME")
+    )
+else:
+    # Local development configuration
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///hdfashions.db")
+
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
@@ -65,4 +75,7 @@ with app.app_context():
 from routes import *
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if 'PYTHONANYWHERE_DOMAIN' in os.environ:
+        app.run()
+    else:
+        app.run(host='0.0.0.0', port=5000, debug=True)
